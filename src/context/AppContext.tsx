@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { User, Repository } from '../types';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import { User, Repository, AuthState } from '../types';
+import { authService } from '../utils/auth';
 
 interface AppState {
   user: User | null;
@@ -9,6 +10,9 @@ interface AppState {
   isLoading: boolean;
   showCreateRepoModal: boolean;
   showCreateModal: boolean;
+  showAuthModal: boolean;
+  authMode: 'login' | 'register';
+  auth: AuthState;
 }
 
 type AppAction =
@@ -19,30 +23,28 @@ type AppAction =
   | { type: 'SET_CURRENT_REPO'; payload: Repository | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'TOGGLE_CREATE_REPO_MODAL' }
-  | { type: 'TOGGLE_CREATE_MODAL' };
+  | { type: 'TOGGLE_CREATE_MODAL' }
+  | { type: 'TOGGLE_AUTH_MODAL'; payload?: 'login' | 'register' }
+  | { type: 'SET_AUTH_STATE'; payload: AuthState }
+  | { type: 'LOGOUT' };
 
 const initialState: AppState = {
-  user: {
-    id: '1',
-    username: 'octocat',
-    name: 'The Octocat',
-    email: 'octocat@github.com',
-    avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
-    bio: 'How people build software',
-    location: 'San Francisco',
-    website: 'https://github.com',
-    company: 'GitHub',
-    followers: 4000,
-    following: 9,
-    publicRepos: 8,
-    joinDate: '2011-01-25'
-  },
+  user: null,
   theme: 'light',
   repositories: [],
   currentRepo: null,
-  isLoading: false,
+  isLoading: true,
   showCreateRepoModal: false,
   showCreateModal: false,
+  showAuthModal: false,
+  authMode: 'login',
+  auth: {
+    isAuthenticated: false,
+    user: null,
+    token: null,
+    refreshToken: null,
+    loginAttempts: 0,
+  },
 };
 
 const AppContext = createContext<{
@@ -53,7 +55,11 @@ const AppContext = createContext<{
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_USER':
-      return { ...state, user: action.payload };
+      return { 
+        ...state, 
+        user: action.payload,
+        auth: { ...state.auth, user: action.payload, isAuthenticated: !!action.payload }
+      };
     case 'SET_THEME':
       return { ...state, theme: action.payload };
     case 'SET_REPOSITORIES':
@@ -72,6 +78,35 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, showCreateRepoModal: !state.showCreateRepoModal };
     case 'TOGGLE_CREATE_MODAL':
       return { ...state, showCreateModal: !state.showCreateModal };
+    case 'TOGGLE_AUTH_MODAL':
+      return { 
+        ...state, 
+        showAuthModal: !state.showAuthModal,
+        authMode: action.payload || state.authMode
+      };
+    case 'SET_AUTH_STATE':
+      return { 
+        ...state, 
+        auth: action.payload,
+        user: action.payload.user,
+        isLoading: false
+      };
+    case 'LOGOUT':
+      return {
+        ...state,
+        user: null,
+        auth: {
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          refreshToken: null,
+          loginAttempts: 0,
+        },
+        repositories: [],
+        currentRepo: null,
+        showCreateRepoModal: false,
+        showCreateModal: false,
+      };
     default:
       return state;
   }
@@ -79,6 +114,28 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Initialize authentication on app start
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const user = await authService.initializeAuth();
+        const authState = authService.getAuthState();
+        
+        dispatch({ type: 'SET_AUTH_STATE', payload: authState });
+        
+        if (user) {
+          dispatch({ type: 'SET_USER', payload: user });
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    };
+
+    initAuth();
+  }, []);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

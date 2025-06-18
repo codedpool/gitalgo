@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Bell, Menu, Sun, Moon, User, LogOut, Settings as SettingsIcon, Github } from 'lucide-react';
+import { Search, Plus, Bell, Menu, Sun, Moon, User, LogOut, Settings as SettingsIcon, Github, Shield, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { mockRepositories, mockIssues } from '../utils/mockData';
+import { authService } from '../utils/auth';
 
 interface SearchResult {
   type: 'repository' | 'user' | 'issue';
@@ -15,9 +16,10 @@ interface HeaderProps {
   onViewChange?: (view: string) => void;
   onRepositorySelect?: (repository: any) => void;
   onToggleSidebar?: () => void;
+  onLogout?: () => void;
 }
 
-export default function Header({ onViewChange, onRepositorySelect, onToggleSidebar }: HeaderProps) {
+export default function Header({ onViewChange, onRepositorySelect, onToggleSidebar, onLogout }: HeaderProps) {
   const { state, dispatch } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -41,6 +43,13 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
 
   const handleCreateClick = () => {
     dispatch({ type: 'TOGGLE_CREATE_MODAL' });
+  };
+
+  const handleLogoutClick = async () => {
+    if (onLogout) {
+      await onLogout();
+    }
+    setShowUserMenu(false);
   };
 
   // Search functionality
@@ -159,6 +168,9 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Check if user has admin permissions
+  const hasAdminAccess = authService.hasPermission('admin_users') || authService.hasPermission('mod_users');
 
   return (
     <header className="bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-dark-700/50 fixed top-0 left-0 right-0 z-50 transition-all duration-300">
@@ -318,16 +330,24 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center space-x-3 focus:outline-none group"
               >
-                <img
-                  className="h-8 w-8 rounded-full ring-2 ring-gray-200/50 dark:ring-dark-700/50 group-hover:ring-primary-500/50 transition-all duration-200"
-                  src={state.user?.avatar}
-                  alt={state.user?.name}
-                />
+                <div className="flex items-center space-x-2">
+                  <img
+                    className="h-8 w-8 rounded-full ring-2 ring-gray-200/50 dark:ring-dark-700/50 group-hover:ring-primary-500/50 transition-all duration-200"
+                    src={state.user?.avatar}
+                    alt={state.user?.name}
+                  />
+                  {/* Role indicator */}
+                  <div 
+                    className="w-3 h-3 rounded-full border-2 border-white dark:border-dark-800"
+                    style={{ backgroundColor: state.user?.role.color }}
+                    title={state.user?.role.name}
+                  />
+                </div>
               </button>
 
               {/* User Menu Dropdown */}
               {showUserMenu && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white/95 dark:bg-dark-800/95 backdrop-blur-xl border border-gray-200/50 dark:border-dark-700/50 rounded-xl shadow-2xl z-50 animate-slide-down">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white/95 dark:bg-dark-800/95 backdrop-blur-xl border border-gray-200/50 dark:border-dark-700/50 rounded-xl shadow-2xl z-50 animate-slide-down">
                   <div className="p-4 border-b border-gray-200/50 dark:border-dark-700/50">
                     <div className="flex items-center space-x-3">
                       <img
@@ -335,13 +355,22 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
                         src={state.user?.avatar}
                         alt={state.user?.name}
                       />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {state.user?.name}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           @{state.user?.username}
                         </p>
+                        <div className="flex items-center space-x-1 mt-1">
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: state.user?.role.color }}
+                          />
+                          <span className="text-xs font-medium" style={{ color: state.user?.role.color }}>
+                            {state.user?.role.name}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -366,8 +395,23 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
                       <SettingsIcon className="h-4 w-4" />
                       <span>Settings</span>
                     </button>
+                    {hasAdminAccess && (
+                      <button
+                        onClick={() => {
+                          onViewChange?.('user-management');
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50/50 dark:hover:bg-dark-700/50 flex items-center space-x-2 transition-all duration-200"
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span>User Management</span>
+                      </button>
+                    )}
                     <hr className="my-2 border-gray-200/50 dark:border-dark-700/50" />
-                    <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50/50 dark:hover:bg-dark-700/50 flex items-center space-x-2 transition-all duration-200">
+                    <button 
+                      onClick={handleLogoutClick}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50/50 dark:hover:bg-dark-700/50 flex items-center space-x-2 transition-all duration-200"
+                    >
                       <LogOut className="h-4 w-4" />
                       <span>Sign out</span>
                     </button>
