@@ -14,9 +14,10 @@ interface SearchResult {
 interface HeaderProps {
   onViewChange?: (view: string) => void;
   onRepositorySelect?: (repository: any) => void;
+  onToggleSidebar?: () => void;
 }
 
-export default function Header({ onViewChange, onRepositorySelect }: HeaderProps) {
+export default function Header({ onViewChange, onRepositorySelect, onToggleSidebar }: HeaderProps) {
   const { state, dispatch } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -156,12 +157,15 @@ export default function Header({ onViewChange, onRepositorySelect }: HeaderProps
   }, []);
 
   return (
-    <header className="bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-dark-700/50 sticky top-0 z-50 transition-all duration-300">
+    <header className="bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-dark-700/50 fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left section */}
           <div className="flex items-center space-x-4">
-            <button className="p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100/50 dark:hover:bg-dark-800/50 md:hidden transition-all duration-200">
+            <button 
+              onClick={onToggleSidebar}
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100/50 dark:hover:bg-dark-800/50 md:hidden transition-all duration-200"
+            >
               <Menu className="h-6 w-6" />
             </button>
             

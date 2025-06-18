@@ -248,11 +248,5 @@ export default function Dashboard({ activeView, onRepositorySelect }: DashboardP
     }
   };
 
-  return (
-    <div className="flex-1 md:pl-64">
-      <div className="p-6">
-        {renderContent()}
-      </div>
-    </div>
-  );
+  return renderContent();
 }

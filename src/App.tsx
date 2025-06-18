@@ -13,6 +13,7 @@ function AppContent() {
   const [currentView, setCurrentView] = useState<'dashboard' | 'repository' | 'settings'>('dashboard');
   const [activeView, setActiveView] = useState<string>('dashboard');
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     // Load mock repositories
@@ -57,6 +58,10 @@ function AppContent() {
     dispatch({ type: 'SET_CURRENT_REPO', payload: null });
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   const renderMainContent = () => {
     switch (currentView) {
       case 'settings':
@@ -85,11 +90,19 @@ function AppContent() {
       <Header 
         onViewChange={handleViewChange}
         onRepositorySelect={handleRepositorySelect}
+        onToggleSidebar={toggleSidebar}
       />
       
-      <div className="flex relative">
-        <Sidebar activeView={activeView} onViewChange={handleViewChange} />
-        <div className="flex-1 md:pl-64">
+      <div className="flex relative pt-16">
+        <Sidebar 
+          activeView={activeView} 
+          onViewChange={handleViewChange}
+          collapsed={sidebarCollapsed}
+          onToggle={toggleSidebar}
+        />
+        <div className={`flex-1 transition-all duration-300 ${
+          sidebarCollapsed ? 'md:pl-20' : 'md:pl-64'
+        }`}>
           <div className="p-6 animate-fade-in">
             {renderMainContent()}
           </div>
