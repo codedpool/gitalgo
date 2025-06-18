@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, GitFork, Circle, Calendar } from 'lucide-react';
+import { Star, GitFork, Circle, Calendar, Eye, Lock } from 'lucide-react';
 import { Repository } from '../types';
 
 interface RepositoryCardProps {
@@ -34,66 +34,67 @@ export default function RepositoryCard({ repository, onClick }: RepositoryCardPr
 
   return (
     <div 
-      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md dark:hover:shadow-gray-900/25 transition-all duration-200 cursor-pointer"
+      className="group bg-white/70 dark:bg-dark-800/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-dark-700/50 p-6 hover:shadow-2xl hover:shadow-primary-500/10 dark:hover:shadow-primary-500/5 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:border-primary-500/30 dark:hover:border-primary-400/30"
       onClick={onClick}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-2">
-            <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+          <div className="flex items-center space-x-2 mb-3">
+            <h3 className="text-lg font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200 group-hover:underline">
               {repository.owner.username}/{repository.name}
             </h3>
             {repository.isPrivate && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
+              <div className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                <Lock className="h-3 w-3 mr-1" />
                 Private
-              </span>
+              </div>
             )}
           </div>
           
           {repository.description && (
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2 leading-relaxed">
               {repository.description}
             </p>
           )}
 
           {repository.topics.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-4">
+            <div className="flex flex-wrap gap-2 mb-4">
               {repository.topics.slice(0, 3).map((topic) => (
                 <span
                   key={topic}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 cursor-pointer transition-colors"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-800 dark:text-blue-300 hover:from-blue-200 hover:to-indigo-200 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 cursor-pointer transition-all duration-200 border border-blue-200/50 dark:border-blue-800/50"
                 >
                   {topic}
                 </span>
               ))}
               {repository.topics.length > 3 && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1 bg-gray-100/50 dark:bg-dark-700/50 rounded-full">
                   +{repository.topics.length - 3} more
                 </span>
               )}
             </div>
           )}
 
-          <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
             {repository.language && (
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-2 group/lang">
                 <Circle 
-                  className="h-3 w-3" 
+                  className="h-3 w-3 transition-transform duration-200 group-hover/lang:scale-110" 
                   fill={languageColors[repository.language] || '#8b949e'}
                   color={languageColors[repository.language] || '#8b949e'}
                 />
-                <span>{repository.language}</span>
+                <span className="font-medium">{repository.language}</span>
               </div>
             )}
             
-            <div className="flex items-center space-x-1">
-              <Star className="h-4 w-4" />
-              <span>{repository.stars.toLocaleString()}</span>
+            <div className="flex items-center space-x-1 group/star">
+              <Star className="h-4 w-4 transition-all duration-200 group-hover/star:text-yellow-500 group-hover/star:scale-110" />
+              <span className="font-medium">{repository.stars.toLocaleString()}</span>
             </div>
             
-            <div className="flex items-center space-x-1">
-              <GitFork className="h-4 w-4" />
-              <span>{repository.forks.toLocaleString()}</span>
+            <div className="flex items-center space-x-1 group/fork">
+              <GitFork className="h-4 w-4 transition-all duration-200 group-hover/fork:text-blue-500 group-hover/fork:scale-110" />
+              <span className="font-medium">{repository.forks.toLocaleString()}</span>
             </div>
             
             <div className="flex items-center space-x-1">
@@ -103,6 +104,9 @@ export default function RepositoryCard({ repository, onClick }: RepositoryCardPr
           </div>
         </div>
       </div>
+      
+      {/* Hover effect overlay */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
     </div>
   );
 }

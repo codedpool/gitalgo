@@ -20,12 +20,16 @@ function AppContent() {
   }, [dispatch]);
 
   useEffect(() => {
-    // Apply theme to document
+    // Apply theme to document with smooth transition
     const root = document.documentElement;
+    root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+    
     if (state.theme === 'dark') {
       root.classList.add('dark');
+      document.body.style.backgroundColor = '#0f172a';
     } else {
       root.classList.remove('dark');
+      document.body.style.backgroundColor = '#f8fafc';
     }
   }, [state.theme]);
 
@@ -75,15 +79,18 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-dark-950 dark:via-dark-900 dark:to-slate-900 transition-all duration-500">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%239C92AC" fill-opacity="0.02"%3E%3Ccircle cx="30" cy="30" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] dark:bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.02"%3E%3Ccircle cx="30" cy="30" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+      
       <Header 
         onViewChange={handleViewChange}
         onRepositorySelect={handleRepositorySelect}
       />
-      <div className="flex">
+      
+      <div className="flex relative">
         <Sidebar activeView={activeView} onViewChange={handleViewChange} />
         <div className="flex-1 md:pl-64">
-          <div className="p-6">
+          <div className="p-6 animate-fade-in">
             {renderMainContent()}
           </div>
         </div>

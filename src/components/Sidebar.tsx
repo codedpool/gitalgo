@@ -32,47 +32,51 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:pt-16">
-      <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+      <div className="flex-1 flex flex-col min-h-0 bg-white/60 dark:bg-dark-900/60 backdrop-blur-xl border-r border-gray-200/50 dark:border-dark-700/50">
         <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4">
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center flex-shrink-0 px-4 mb-6">
+            <div className="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 dark:from-dark-800 dark:to-dark-700 border border-gray-200/50 dark:border-dark-600/50 w-full">
               <img
-                className="h-8 w-8 rounded-full"
+                className="h-10 w-10 rounded-full ring-2 ring-primary-500/20 shadow-md"
                 src={state.user?.avatar}
                 alt={state.user?.name}
               />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                   {state.user?.name}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   @{state.user?.username}
                 </p>
               </div>
             </div>
           </div>
           
-          <nav className="mt-8 flex-1 px-2 space-y-1">
+          <nav className="flex-1 px-3 space-y-2">
             {navigationItems.map((item) => (
               <button
                 key={item.name}
                 onClick={() => onViewChange(item.id)}
-                className={`group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`group flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
                   activeView === item.id
-                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white shadow-lg shadow-primary-500/25 transform scale-[1.02]'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white hover:scale-[1.01]'
                 }`}
               >
                 <item.icon
-                  className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                  className={`mr-3 flex-shrink-0 h-5 w-5 transition-all duration-200 ${
                     activeView === item.id
-                      ? 'text-gray-500 dark:text-gray-400' 
-                      : 'text-gray-400 group-hover:text-gray-500'
+                      ? 'text-white' 
+                      : 'text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300'
                   }`}
                 />
                 {item.name}
                 {item.count !== undefined && (
-                  <span className="ml-auto inline-block py-0.5 px-2 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                  <span className={`ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                    activeView === item.id
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-200/50 dark:bg-dark-700/50 text-gray-600 dark:text-gray-300 group-hover:bg-gray-300/50 dark:group-hover:bg-dark-600/50'
+                  }`}>
                     {item.count}
                   </span>
                 )}
@@ -80,22 +84,26 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
             ))}
           </nav>
 
-          <div className="mt-8">
-            <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <div className="mt-8 px-3">
+            <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
               Teams
             </h3>
-            <div className="mt-1 space-y-1">
+            <div className="space-y-2">
               {teamItems.map((item) => (
                 <button
                   key={item.name}
                   onClick={() => onViewChange(item.id)}
-                  className={`group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`group flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
                     activeView === item.id
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                      ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white shadow-lg shadow-primary-500/25 transform scale-[1.02]'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white hover:scale-[1.01]'
                   }`}
                 >
-                  <item.icon className="mr-3 flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                  <item.icon className={`mr-3 flex-shrink-0 h-5 w-5 transition-all duration-200 ${
+                    activeView === item.id
+                      ? 'text-white'
+                      : 'text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300'
+                  }`} />
                   {item.name}
                 </button>
               ))}
@@ -103,16 +111,20 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
           </div>
         </div>
 
-        <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+        <div className="flex-shrink-0 border-t border-gray-200/50 dark:border-dark-700/50 p-4">
           <button 
             onClick={() => onViewChange('settings')}
-            className={`flex items-center w-full text-sm transition-colors ${
+            className={`flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
               activeView === 'settings'
-                ? 'text-gray-900 dark:text-white'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                ? 'bg-gradient-to-r from-primary-500 to-blue-500 text-white shadow-lg shadow-primary-500/25'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            <Settings className="mr-3 h-5 w-5 text-gray-400" />
+            <Settings className={`mr-3 h-5 w-5 transition-all duration-200 ${
+              activeView === 'settings'
+                ? 'text-white'
+                : 'text-gray-400'
+            }`} />
             Settings
           </button>
         </div>
