@@ -7,14 +7,19 @@ interface AppState {
   repositories: Repository[];
   currentRepo: Repository | null;
   isLoading: boolean;
+  showCreateRepoModal: boolean;
+  showCreateModal: boolean;
 }
 
 type AppAction =
   | { type: 'SET_USER'; payload: User | null }
   | { type: 'SET_THEME'; payload: 'light' | 'dark' }
   | { type: 'SET_REPOSITORIES'; payload: Repository[] }
+  | { type: 'ADD_REPOSITORY'; payload: Repository }
   | { type: 'SET_CURRENT_REPO'; payload: Repository | null }
-  | { type: 'SET_LOADING'; payload: boolean };
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'TOGGLE_CREATE_REPO_MODAL' }
+  | { type: 'TOGGLE_CREATE_MODAL' };
 
 const initialState: AppState = {
   user: {
@@ -36,6 +41,8 @@ const initialState: AppState = {
   repositories: [],
   currentRepo: null,
   isLoading: false,
+  showCreateRepoModal: false,
+  showCreateModal: false,
 };
 
 const AppContext = createContext<{
@@ -51,10 +58,20 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, theme: action.payload };
     case 'SET_REPOSITORIES':
       return { ...state, repositories: action.payload };
+    case 'ADD_REPOSITORY':
+      return { 
+        ...state, 
+        repositories: [action.payload, ...state.repositories],
+        user: state.user ? { ...state.user, publicRepos: state.user.publicRepos + 1 } : null
+      };
     case 'SET_CURRENT_REPO':
       return { ...state, currentRepo: action.payload };
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
+    case 'TOGGLE_CREATE_REPO_MODAL':
+      return { ...state, showCreateRepoModal: !state.showCreateRepoModal };
+    case 'TOGGLE_CREATE_MODAL':
+      return { ...state, showCreateModal: !state.showCreateModal };
     default:
       return state;
   }

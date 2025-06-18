@@ -39,6 +39,10 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
     document.documentElement.style.transition = 'all 0.3s ease';
   };
 
+  const handleCreateClick = () => {
+    dispatch({ type: 'TOGGLE_CREATE_MODAL' });
+  };
+
   // Search functionality
   const performSearch = (query: string) => {
     if (!query.trim()) {
@@ -49,7 +53,7 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
     const results: SearchResult[] = [];
 
     // Search repositories
-    mockRepositories.forEach(repo => {
+    state.repositories.forEach(repo => {
       if (repo.name.toLowerCase().includes(query.toLowerCase()) || 
           repo.description?.toLowerCase().includes(query.toLowerCase())) {
         results.push({
@@ -100,7 +104,7 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
 
   const handleSearchResultClick = (result: SearchResult) => {
     if (result.type === 'repository') {
-      const repo = mockRepositories.find(r => r.id === result.id);
+      const repo = state.repositories.find(r => r.id === result.id);
       if (repo && onRepositorySelect) {
         onRepositorySelect(repo);
       }
@@ -299,7 +303,10 @@ export default function Header({ onViewChange, onRepositorySelect, onToggleSideb
             </div>
 
             <div className="relative">
-              <button className="flex items-center space-x-2 p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-dark-800/50 transition-all duration-200 group">
+              <button 
+                onClick={handleCreateClick}
+                className="flex items-center space-x-2 p-2.5 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-dark-800/50 transition-all duration-200 group"
+              >
                 <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
                 <span className="hidden sm:block font-medium">Create</span>
               </button>

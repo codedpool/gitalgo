@@ -5,6 +5,8 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import RepositoryView from './components/RepositoryView';
 import Settings from './components/Settings';
+import CreateRepositoryModal from './components/CreateRepositoryModal';
+import CreateModal from './components/CreateModal';
 import { mockRepositories } from './utils/mockData';
 import { Repository } from './types';
 
@@ -62,6 +64,10 @@ function AppContent() {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const handleCreateRepository = () => {
+    dispatch({ type: 'TOGGLE_CREATE_REPO_MODAL' });
+  };
+
   const renderMainContent = () => {
     switch (currentView) {
       case 'settings':
@@ -108,6 +114,18 @@ function AppContent() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <CreateRepositoryModal 
+        isOpen={state.showCreateRepoModal}
+        onClose={() => dispatch({ type: 'TOGGLE_CREATE_REPO_MODAL' })}
+      />
+      
+      <CreateModal 
+        isOpen={state.showCreateModal}
+        onClose={() => dispatch({ type: 'TOGGLE_CREATE_MODAL' })}
+        onCreateRepository={handleCreateRepository}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Book, Star, Users, TrendingUp, Calendar, Zap, Activity, GitBranch } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { mockRepositories, mockIssues } from '../utils/mockData';
+import { mockIssues } from '../utils/mockData';
 import RepositoryCard from './RepositoryCard';
 
 interface DashboardProps {
@@ -10,22 +10,26 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ activeView, onRepositorySelect }: DashboardProps) {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const [activeTab, setActiveTab] = useState('overview');
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: Book },
-    { id: 'repositories', name: 'Repositories', icon: Book, count: mockRepositories.length },
+    { id: 'repositories', name: 'Repositories', icon: Book, count: state.repositories.length },
     { id: 'projects', name: 'Projects', icon: Star, count: 3 },
     { id: 'packages', name: 'Packages', icon: Users, count: 0 },
   ];
 
   const stats = [
-    { name: 'Repositories', value: state.user?.publicRepos || 0, icon: Book, color: 'from-blue-500 to-blue-600', bgColor: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20' },
+    { name: 'Repositories', value: state.repositories.length, icon: Book, color: 'from-blue-500 to-blue-600', bgColor: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20' },
     { name: 'Contributions', value: '1,247', icon: TrendingUp, color: 'from-green-500 to-green-600', bgColor: 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20' },
     { name: 'Followers', value: state.user?.followers || 0, icon: Users, color: 'from-purple-500 to-purple-600', bgColor: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20' },
     { name: 'Following', value: state.user?.following || 0, icon: Users, color: 'from-orange-500 to-orange-600', bgColor: 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20' },
   ];
+
+  const handleCreateRepository = () => {
+    dispatch({ type: 'TOGGLE_CREATE_REPO_MODAL' });
+  };
 
   // Show different content based on sidebar selection
   const renderContent = () => {
@@ -51,20 +55,44 @@ export default function Dashboard({ activeView, onRepositorySelect }: DashboardP
                   <option>Archived</option>
                 </select>
               </div>
-              <button className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl shadow-lg text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:scale-105 hover:shadow-xl">
+              <button 
+                onClick={handleCreateRepository}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl shadow-lg text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 New Repository
               </button>
             </div>
 
             <div className="space-y-6">
-              {mockRepositories.map((repo) => (
-                <RepositoryCard 
-                  key={repo.id} 
-                  repository={repo} 
-                  onClick={() => onRepositorySelect(repo)}
-                />
-              ))}
+              {state.repositories.length > 0 ? (
+                state.repositories.map((repo) => (
+                  <RepositoryCard 
+                    key={repo.id} 
+                    repository={repo} 
+                    onClick={() => onRepositorySelect(repo)}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-16">
+                  <div className="mx-auto h-24 w-24 text-gray-400 mb-6">
+                    <Book className="h-full w-full" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    No repositories yet
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Create your first repository to get started.
+                  </p>
+                  <button 
+                    onClick={handleCreateRepository}
+                    className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 hover:scale-105 shadow-lg"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create repository
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -122,7 +150,10 @@ export default function Dashboard({ activeView, onRepositorySelect }: DashboardP
                     Here's what's happening with your projects today.
                   </p>
                 </div>
-                <button className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl shadow-lg text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:scale-105 hover:shadow-xl">
+                <button 
+                  onClick={handleCreateRepository}
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl shadow-lg text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   New Repository
                 </button>
@@ -234,13 +265,34 @@ export default function Dashboard({ activeView, onRepositorySelect }: DashboardP
                 </button>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {mockRepositories.slice(0, 2).map((repo) => (
-                  <RepositoryCard 
-                    key={repo.id} 
-                    repository={repo} 
-                    onClick={() => onRepositorySelect(repo)}
-                  />
-                ))}
+                {state.repositories.length > 0 ? (
+                  state.repositories.slice(0, 2).map((repo) => (
+                    <RepositoryCard 
+                      key={repo.id} 
+                      repository={repo} 
+                      onClick={() => onRepositorySelect(repo)}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-2 text-center py-12">
+                    <div className="mx-auto h-16 w-16 text-gray-400 mb-4">
+                      <Book className="h-full w-full" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      No repositories yet
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
+                      Create your first repository to get started.
+                    </p>
+                    <button 
+                      onClick={handleCreateRepository}
+                      className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 hover:scale-105 shadow-lg"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create repository
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
