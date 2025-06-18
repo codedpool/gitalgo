@@ -96,7 +96,6 @@ function AppContent() {
         </div>
       </div>
     </div>
-  )
   );
 }
 
