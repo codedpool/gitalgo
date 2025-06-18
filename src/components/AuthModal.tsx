@@ -126,18 +126,30 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
           </button>
         </div>
 
-        {/* Demo Accounts Info */}
-        <div className="p-6 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-dark-700">
-          <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">Demo Accounts</h3>
-          <div className="space-y-1 text-xs text-blue-700 dark:text-blue-400">
-            <div><strong>Owner:</strong> octocat@github.com</div>
-            <div><strong>Admin:</strong> admin@github.com</div>
-            <div><strong>Moderator:</strong> mod@github.com</div>
-            <div><strong>User:</strong> user@example.com</div>
-            <div className="mt-2"><strong>Password:</strong> password123</div>
-            <div><strong>2FA Code:</strong> 123456 (for accounts with 2FA)</div>
+        {/* Demo Accounts Info - Only show for login */}
+        {mode === 'login' && (
+          <div className="p-6 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-dark-700">
+            <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">Demo Accounts</h3>
+            <div className="space-y-1 text-xs text-blue-700 dark:text-blue-400">
+              <div><strong>Owner:</strong> octocat@github.com</div>
+              <div><strong>Admin:</strong> admin@github.com</div>
+              <div><strong>Moderator:</strong> mod@github.com</div>
+              <div><strong>User:</strong> user@example.com</div>
+              <div className="mt-2"><strong>Password:</strong> password123</div>
+              <div><strong>2FA Code:</strong> 123456 (for accounts with 2FA)</div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Registration Info */}
+        {mode === 'register' && (
+          <div className="p-6 bg-green-50 dark:bg-green-900/20 border-b border-gray-200 dark:border-dark-700">
+            <h3 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-2">Create Your Account</h3>
+            <p className="text-xs text-green-700 dark:text-green-400">
+              Join thousands of developers and start building amazing projects today!
+            </p>
+          </div>
+        )}
 
         {/* Form */}
         <div className="p-6">

@@ -27,20 +27,6 @@ function AppContent() {
     }
   }, [state.auth.isAuthenticated, state.repositories.length, dispatch]);
 
-  useEffect(() => {
-    // Apply theme to document with smooth transition
-    const root = document.documentElement;
-    root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
-    
-    if (state.theme === 'dark') {
-      root.classList.add('dark');
-      document.body.style.backgroundColor = '#0f172a';
-    } else {
-      root.classList.remove('dark');
-      document.body.style.backgroundColor = '#f8fafc';
-    }
-  }, [state.theme]);
-
   const handleRepositorySelect = (repository: Repository) => {
     setSelectedRepo(repository);
     setCurrentView('repository');
@@ -86,6 +72,10 @@ function AppContent() {
     dispatch({ type: 'LOGOUT' });
   };
 
+  const handleShowRegister = () => {
+    dispatch({ type: 'TOGGLE_AUTH_MODAL', payload: 'register' });
+  };
+
   // Show loading screen while initializing
   if (state.isLoading) {
     return (
@@ -102,6 +92,14 @@ function AppContent() {
   if (!state.auth.isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-dark-950 dark:via-dark-900 dark:to-slate-900 flex items-center justify-center">
+        <div className="absolute top-8 right-8">
+          <button
+            onClick={handleShowRegister}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl shadow-lg text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+          >
+            Create Account
+          </button>
+        </div>
         <AuthModal
           isOpen={true}
           onClose={() => {}}
@@ -137,7 +135,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-dark-950 dark:via-dark-900 dark:to-slate-900 transition-all duration-500">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width=%2260%22%20height=%2260%22%20viewBox=%220%200%2060%2060%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg%20fill=%22none%22%20fill-rule=%22evenodd%22%3E%3Cg%20fill=%22%239C92AC%22%20fill-opacity=%220.02%22%3E%3Ccircle%20cx=%2230%22%20cy=%2230%22%20r=%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] dark:bg-[url('data:image/svg+xml,%3Csvg%20width=%2260%22%20height=%2260%22%20viewBox=%220%200%2060%2060%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg%20fill=%22none%22%20fill-rule=%22evenodd%22%3E%3Cg%20fill=%22%23ffffff%22%20fill-opacity=%220.02%22%3E%3Ccircle%20cx=%2230%22%20cy=%2230%22%20r=%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzkyQUMiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIvPjwvZz48L2c+PC9zdmc+')] dark:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIvPjwvZz48L2c+PC9zdmc+')]"></div>
       
       <Header 
         onViewChange={handleViewChange}

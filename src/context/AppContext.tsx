@@ -30,7 +30,7 @@ type AppAction =
 
 const initialState: AppState = {
   user: null,
-  theme: 'light',
+  theme: 'dark', // Default to dark mode
   repositories: [],
   currentRepo: null,
   isLoading: true,
@@ -61,6 +61,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         auth: { ...state.auth, user: action.payload, isAuthenticated: !!action.payload }
       };
     case 'SET_THEME':
+      // Store theme preference in localStorage
+      localStorage.setItem('theme', action.payload);
       return { ...state, theme: action.payload };
     case 'SET_REPOSITORIES':
       return { ...state, repositories: action.payload };
@@ -115,10 +117,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Initialize authentication on app start
+  // Initialize theme and authentication on app start
   useEffect(() => {
-    const initAuth = async () => {
+    const initApp = async () => {
       try {
+        // Initialize theme from localStorage or default to dark
+        const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+        const theme = savedTheme || 'dark';
+        dispatch({ type: 'SET_THEME', payload: theme });
+
+        // Initialize authentication
         const user = await authService.initializeAuth();
         const authState = authService.getAuthState();
         
@@ -128,14 +136,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
           dispatch({ type: 'SET_USER', payload: user });
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error);
+        console.error('Failed to initialize app:', error);
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
-    initAuth();
+    initApp();
   }, []);
+
+  // Apply theme to document
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+    
+    if (state.theme === 'dark') {
+      root.classList.add('dark');
+      document.body.style.backgroundColor = '#0f172a';
+    } else {
+      root.classList.remove('dark');
+      document.body.style.backgroundColor = '#f8fafc';
+    }
+  }, [state.theme]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
