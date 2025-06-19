@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { X, Eye, EyeOff, Github, Mail, Lock, User, Shield, AlertCircle, CheckCircle } from 'lucide-react';
-import { authService } from '../utils/auth';
-import { LoginCredentials, RegisterData } from '../types';
+import { X, Eye, EyeOff, Github, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -11,27 +10,24 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode = 'login' }: AuthModalProps) {
+  const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
 
-  const [loginData, setLoginData] = useState<LoginCredentials>({
+  const [loginData, setLoginData] = useState({
     email: '',
     password: '',
-    rememberMe: false,
-    twoFactorCode: ''
   });
 
-  const [registerData, setRegisterData] = useState<RegisterData>({
+  const [registerData, setRegisterData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    acceptTerms: false
+    fullName: '',
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,22 +36,17 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
     setError('');
 
     try {
-      const result = await authService.login(loginData);
+      const { user, error } = await signIn(loginData);
       
-      if (result.success && result.user) {
+      if (error) {
+        setError(error.message);
+      } else if (user) {
         setSuccess('Login successful!');
         setTimeout(() => {
-          onAuthSuccess(result.user);
+          onAuthSuccess(user);
           onClose();
           resetForm();
         }, 1000);
-      } else {
-        if (result.error === '2FA code required') {
-          setNeedsTwoFactor(true);
-          setError('Please enter your 2FA code');
-        } else {
-          setError(result.error || 'Login failed');
-        }
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -69,17 +60,29 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
     setIsLoading(true);
     setError('');
 
+    if (registerData.password !== registerData.confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (registerData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const result = await authService.register(registerData);
+      const { user, error } = await signUp(registerData);
       
-      if (result.success && result.user) {
-        setSuccess('Registration successful! You can now log in.');
+      if (error) {
+        setError(error.message);
+      } else if (user) {
+        setSuccess('Registration successful! Please check your email to verify your account.');
         setTimeout(() => {
           setMode('login');
           resetForm();
         }, 2000);
-      } else {
-        setError(result.error || 'Registration failed');
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -89,13 +92,11 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
   };
 
   const resetForm = () => {
-    setLoginData({ email: '', password: '', rememberMe: false, twoFactorCode: '' });
-    setRegisterData({ username: '', email: '', password: '', confirmPassword: '', acceptTerms: false });
+    setLoginData({ email: '', password: '' });
+    setRegisterData({ username: '', email: '', password: '', confirmPassword: '', fullName: '' });
     setError('');
     setSuccess('');
-    setNeedsTwoFactor(false);
     setShowPassword(false);
-    setShowConfirmPassword(false);
   };
 
   const handleClose = () => {
@@ -125,31 +126,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
             <X className="h-5 w-5" />
           </button>
         </div>
-
-        {/* Demo Accounts Info - Only show for login */}
-        {mode === 'login' && (
-          <div className="p-6 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-dark-700">
-            <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">Demo Accounts</h3>
-            <div className="space-y-1 text-xs text-blue-700 dark:text-blue-400">
-              <div><strong>Owner:</strong> octocat@github.com</div>
-              <div><strong>Admin:</strong> admin@github.com</div>
-              <div><strong>Moderator:</strong> mod@github.com</div>
-              <div><strong>User:</strong> user@example.com</div>
-              <div className="mt-2"><strong>Password:</strong> password123</div>
-              <div><strong>2FA Code:</strong> 123456 (for accounts with 2FA)</div>
-            </div>
-          </div>
-        )}
-
-        {/* Registration Info */}
-        {mode === 'register' && (
-          <div className="p-6 bg-green-50 dark:bg-green-900/20 border-b border-gray-200 dark:border-dark-700">
-            <h3 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-2">Create Your Account</h3>
-            <p className="text-xs text-green-700 dark:text-green-400">
-              Join thousands of developers and start building amazing projects today!
-            </p>
-          </div>
-        )}
 
         {/* Form */}
         <div className="p-6">
@@ -210,44 +186,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
                 </div>
               </div>
 
-              {needsTwoFactor && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Two-Factor Authentication Code
-                  </label>
-                  <div className="relative">
-                    <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      required
-                      value={loginData.twoFactorCode}
-                      onChange={(e) => setLoginData(prev => ({ ...prev, twoFactorCode: e.target.value }))}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="Enter 6-digit code"
-                      maxLength={6}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={loginData.rememberMe}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, rememberMe: e.target.checked }))}
-                    className="text-primary-600 focus:ring-primary-500 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
-                </label>
-                <button
-                  type="button"
-                  className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
-                >
-                  Forgot password?
-                </button>
-              </div>
-
               <button
                 type="submit"
                 disabled={isLoading}
@@ -265,6 +203,23 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Full name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    required
+                    value={registerData.fullName}
+                    onChange={(e) => setRegisterData(prev => ({ ...prev, fullName: e.target.value }))}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Username
@@ -330,43 +285,14 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={registerData.confirmPassword}
                     onChange={(e) => setRegisterData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                     placeholder="Confirm your password"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
                 </div>
-              </div>
-
-              <div>
-                <label className="flex items-start space-x-2">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={registerData.acceptTerms}
-                    onChange={(e) => setRegisterData(prev => ({ ...prev, acceptTerms: e.target.checked }))}
-                    className="mt-1 text-primary-600 focus:ring-primary-500 rounded"
-                  />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    I agree to the{' '}
-                    <button type="button" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      Terms of Service
-                    </button>{' '}
-                    and{' '}
-                    <button type="button" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      Privacy Policy
-                    </button>
-                  </span>
-                </label>
               </div>
 
               <button
@@ -396,7 +322,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
                   setMode(mode === 'login' ? 'register' : 'login');
                   setError('');
                   setSuccess('');
-                  setNeedsTwoFactor(false);
                 }}
                 className="text-primary-600 dark:text-primary-400 hover:underline font-medium"
               >

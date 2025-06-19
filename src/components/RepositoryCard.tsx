@@ -1,6 +1,6 @@
 import React from 'react';
-import { Star, GitFork, Circle, Calendar, Eye, Lock } from 'lucide-react';
-import { Repository } from '../types';
+import { Star, GitFork, Circle, Calendar, Lock } from 'lucide-react';
+import { Repository } from '../services/repositoryService';
 
 interface RepositoryCardProps {
   repository: Repository;
@@ -41,9 +41,9 @@ export default function RepositoryCard({ repository, onClick }: RepositoryCardPr
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-3">
             <h3 className="text-lg font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200 group-hover:underline">
-              {repository.owner.username}/{repository.name}
+              {repository.owner?.username}/{repository.name}
             </h3>
-            {repository.isPrivate && (
+            {repository.is_private && (
               <div className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                 <Lock className="h-3 w-3 mr-1" />
                 Private
@@ -89,17 +89,17 @@ export default function RepositoryCard({ repository, onClick }: RepositoryCardPr
             
             <div className="flex items-center space-x-1 group/star">
               <Star className="h-4 w-4 transition-all duration-200 group-hover/star:text-yellow-500 group-hover/star:scale-110" />
-              <span className="font-medium">{repository.stars.toLocaleString()}</span>
+              <span className="font-medium">{repository.stars_count.toLocaleString()}</span>
             </div>
             
             <div className="flex items-center space-x-1 group/fork">
               <GitFork className="h-4 w-4 transition-all duration-200 group-hover/fork:text-blue-500 group-hover/fork:scale-110" />
-              <span className="font-medium">{repository.forks.toLocaleString()}</span>
+              <span className="font-medium">{repository.forks_count.toLocaleString()}</span>
             </div>
             
             <div className="flex items-center space-x-1">
               <Calendar className="h-4 w-4" />
-              <span>{formatDate(repository.updatedAt)}</span>
+              <span>{formatDate(repository.updated_at)}</span>
             </div>
           </div>
         </div>

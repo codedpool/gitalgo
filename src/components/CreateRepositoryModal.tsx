@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { X, Lock, Globe, Info, Check } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { Repository } from '../types';
+import { useRepositories } from '../hooks/useRepositories';
 
 interface CreateRepositoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (repository: any) => void;
 }
 
-export default function CreateRepositoryModal({ isOpen, onClose }: CreateRepositoryModalProps) {
-  const { state, dispatch } = useApp();
+export default function CreateRepositoryModal({ isOpen, onClose, onSuccess }: CreateRepositoryModalProps) {
+  const { createRepository } = useRepositories();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -60,8 +60,6 @@ export default function CreateRepositoryModal({ isOpen, onClose }: CreateReposit
       newErrors.name = 'Repository name is required';
     } else if (!/^[a-zA-Z0-9._-]+$/.test(formData.name)) {
       newErrors.name = 'Repository name can only contain letters, numbers, dots, hyphens, and underscores';
-    } else if (state.repositories.some(repo => repo.name.toLowerCase() === formData.name.toLowerCase())) {
-      newErrors.name = 'Repository name already exists';
     }
 
     if (formData.description.length > 350) {
@@ -79,34 +77,24 @@ export default function CreateRepositoryModal({ isOpen, onClose }: CreateReposit
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const { repository, error } = await createRepository(formData);
+      
+      if (error) {
+        setErrors({ general: error.message });
+      } else if (repository) {
+        onSuccess?.(repository);
+        onClose();
+        resetForm();
+      }
+    } catch (error) {
+      setErrors({ general: 'An unexpected error occurred' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    const newRepository: Repository = {
-      id: Date.now().toString(),
-      name: formData.name,
-      description: formData.description || undefined,
-      owner: state.user!,
-      isPrivate: formData.isPrivate,
-      language: 'JavaScript', // Default language
-      stars: 0,
-      forks: 0,
-      size: 0,
-      defaultBranch: 'main',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      topics: [],
-      hasIssues: true,
-      hasPullRequests: true,
-      license: formData.license !== 'None' ? formData.license : undefined,
-    };
-
-    dispatch({ type: 'ADD_REPOSITORY', payload: newRepository });
-    
-    setIsSubmitting(false);
-    onClose();
-    
-    // Reset form
+  const resetForm = () => {
     setFormData({
       name: '',
       description: '',
@@ -125,6 +113,11 @@ export default function CreateRepositoryModal({ isOpen, onClose }: CreateReposit
     }
   };
 
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -136,7 +129,7 @@ export default function CreateRepositoryModal({ isOpen, onClose }: CreateReposit
             Create a new repository
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
           >
             <X className="h-5 w-5" />
@@ -145,27 +138,28 @@ export default function CreateRepositoryModal({ isOpen, onClose }: CreateReposit
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {errors.general && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
+              {errors.general}
+            </div>
+          )}
+
           {/* Repository name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Repository name *
             </label>
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-500 dark:text-gray-400 font-medium">
-                {state.user?.username}/
-              </span>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className={`flex-1 px-3 py-2 border rounded-lg bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 transition-colors ${
-                  errors.name
-                    ? 'border-red-300 focus:ring-red-500'
-                    : 'border-gray-300 dark:border-dark-600 focus:ring-primary-500'
-                }`}
-                placeholder="my-awesome-project"
-              />
-            </div>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-dark-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 transition-colors ${
+                errors.name
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 dark:border-dark-600 focus:ring-primary-500'
+              }`}
+              placeholder="my-awesome-project"
+            />
             {errors.name && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
             )}
@@ -319,7 +313,7 @@ export default function CreateRepositoryModal({ isOpen, onClose }: CreateReposit
           <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-dark-700">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Cancel

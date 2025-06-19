@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Star, Rocket, Globe, Zap, Users, Code, ArrowRight, Sparkles } from 'lucide-react';
 import AuthModal from './AuthModal';
+import { useAuth } from '../hooks/useAuth';
 
-interface SpaceLandingPageProps {
-  onAuthSuccess: (user: any) => void;
-}
-
-export default function SpaceLandingPage({ onAuthSuccess }: SpaceLandingPageProps) {
+export default function SpaceLandingPage() {
+  const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -24,6 +22,15 @@ export default function SpaceLandingPage({ onAuthSuccess }: SpaceLandingPageProp
     setAuthMode(mode);
     setShowAuthModal(true);
   };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+  };
+
+  // If user is authenticated, don't show landing page
+  if (user) {
+    return null;
+  }
 
   const features = [
     {
@@ -265,7 +272,7 @@ export default function SpaceLandingPage({ onAuthSuccess }: SpaceLandingPageProp
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onAuthSuccess={onAuthSuccess}
+        onAuthSuccess={handleAuthSuccess}
         initialMode={authMode}
       />
     </div>
